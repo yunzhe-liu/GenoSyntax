@@ -141,16 +141,6 @@ python main.py explore_mechanisms \
     --output_dir ./output/4_mechanism_analysis/
 ```
 
-**Step 5 (Optional): `plot_layouts`**
-
-After running the `extract_layouts` analysis in Step 4, you can generate a high-quality visualization of the genomic architectures.
-
-```bash
-python main.py plot_layouts \
-    --input ./output/4_mechanism_analysis/reports/all_genome_layouts.csv \
-    --output my_genome_comparison.png \
-    --sort
-```
 
 ## Output Structure
 
@@ -179,7 +169,7 @@ My_GenoSyntax_Analysis/
 │   │   └── hot_frontend_boundaries.fasta   # FASTA files for motif discovery
 │   ├── motif_analysis_multigene_modules/
 │   │   └── hot_frontend_boundaries.fasta   # Cassette-specific FASTA files (recommended for integrase motifs)
-│   ├── motif_analysis_high_spi_enriched/   # <--- ADDED THIS DIRECTORY
+│   ├── motif_analysis_high_spi_enriched/   
 │   │   └── high_spi_freq_frontend_boundaries.fasta
 │   ├── adjacency_module_analysis/
 │   │   ├── adjacency_modules_summary.csv   # Summary of multi-gene modules
