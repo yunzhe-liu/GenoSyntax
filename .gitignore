@@ -1,0 +1,52 @@
+# ==============================================================================
+# .gitignore for the GenoSyntax project
+# ==============================================================================
+
+# 1. Python specific files
+# ------------------------------------------------------------------------------
+# Byte-code / cache files
+__pycache__/
+*.pyc
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+
+# 2. Editor & OS specific files
+# ------------------------------------------------------------------------------
+# VS Code
+.vscode/
+
+# Mac OS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+
+# 3. GenoSyntax specific files & directories
+# ------------------------------------------------------------------------------
+# Ignore all output directories from test runs or real analyses
+Test/
+pipeline_output/
+Janus_Analysis/
+Final_Analysis/
+*.png
+*.pdf
+*.svg
+
+# Ignore any temporary directories created during runtime
+*temp*/
+mafft_temp/
+
+# Ignore log files
+*.log
+
+
+# 4. Sensitive Information (Example)
+# ------------------------------------------------------------------------------
+# Uncomment and add any files containing credentials if you have them
+# credentials.json
+# config.ini
