@@ -199,5 +199,6 @@ My_GenoSyntax_Analysis/
 ## Citation
 
 If you use GenoSyntax in your research, please cite:
+
 *(Manuscript in preparation. Citation details will be available here upon publication.)*
 
