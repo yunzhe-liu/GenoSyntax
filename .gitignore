@@ -45,8 +45,7 @@ mafft_temp/
 *.log
 
 
-# 4. Sensitive Information (Example)
-# ------------------------------------------------------------------------------
-# Uncomment and add any files containing credentials if you have them
-# credentials.json
-# config.ini
+# Local analysis output and environments
+analysis/
+.venv/
+.pytest_cache/

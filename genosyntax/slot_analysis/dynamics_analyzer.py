@@ -1,5 +1,3 @@
-# /cluster/home/yunzliu/Project/GenoSynax_test/slot_analysis/src/dynamics_analyzer.py
-
 import pandas as pd
 from collections import defaultdict
 from tqdm import tqdm
@@ -11,10 +9,7 @@ def analyze_module_dynamics(
     passed_genomes,
     spi_resolution='low'
 ):
-    """
-    Analyzes the structural dynamics of accessory modules (AMs).
-    VERSION 2 : Implements a strict definition for module presence in a slot.
-    """
+    """Analyzes the structural dynamics of accessory modules (AMs)."""
     print("\n--- Task 5: Analyzing Modular Dynamics ---")
     print(f"  Using SPI resolution: '{spi_resolution}'")
 
@@ -82,7 +77,9 @@ def analyze_module_dynamics(
             'observed_slots': "; ".join(sorted(list(observed_slots))) if observed_slots else "None"
         })
 
-    report_df = pd.DataFrame(results).sort_values(by=['spi', 'frequency'], ascending=[False, False])
+    report_df = pd.DataFrame(results, columns=['module_id', 'module_type', 'num_genes', 'members',
+        'consensus_function', 'frequency', 'occurrence_count', 'spi', 'behavioral_class',
+        'observed_slots']).sort_values(by=['spi', 'frequency'], ascending=[False, False])
     
     print("Modular dynamics analysis complete.")
     return report_df

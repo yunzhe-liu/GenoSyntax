@@ -1,194 +1,112 @@
-# GenoSyntax: A Framework for Deconstructing and Quantifying Genomic Architecture
+# GenoSyntax
 
-[![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+GenoSyntax compares conserved gene blocks and accessory gene locations in related phage genomes. It reads a Panaroo gene presence/absence matrix and Pharokka annotations, identifies conserved core-gene blocks (anchors), and describes accessory genes relative to those blocks (slots).
 
-GenoSyntax is a bioinformatics framework designed to analyze the genomic architecture of related microbial genomes, particularly phages and bacteria. It moves beyond simple gene content analysis to deconstruct the physical layout of genomes into a stable, conserved **backbone** and dynamic, plastic **slots**. By systematically quantifying the properties of both, GenoSyntax provides a comprehensive and quantitative view of genomic rigidity and plasticity.
+## Workflow
 
-## Key Features
-
-*   **Integrated Pipeline:** A single `run` command orchestrates the entire workflow, from raw annotation files to final mechanistic insights, managing all intermediate data automatically.
-*   **Quantitative Architectural Metrics:** Introduces novel summary metrics for high-level comparison:
-    *   **Genomic Rigidity Index (GRI):** A normalized score (0-1) quantifying the stability and conservation of the genomic backbone.
-    *   **Genomic Plasticity Profile:** A suite of three scores that provide a multi-faceted view of accessory genome dynamics.
-*   **Robust Anchor-Slot Framework:** Algorithmically identifies conserved "Anchor Modules" (the backbone) and partitions the remaining "Slot Space" where mobile elements reside.
-*   **Dual-Tier Statistical Testing:** Employs a rigorous permutation test to identify significant insertion hotspots and coldspots at two resolutions: for all accessory genes and specifically for multi-gene cassettes.
-*   **Mechanism Exploration Engine:** Prepares high-quality, analysis-ready input files for specialized downstream tools to investigate motifs (`MEME`), evolutionary dynamics (`MAFFT`), and functional module composition (`Cytoscape`).
-
-## Conceptual Framework
-
-GenoSyntax is built on the **Anchor-Slot Model**:
-
-1.  **Pangenome Stratification:** The pangenome is first divided into `Strict Core`, `Soft Core`, and `Accessory` gene sets based on prevalence.
-2.  **Anchor Modules:** The structural backbone is defined by **Anchor Modules**—contiguous blocks of `Strict Core` genes that are syntenically conserved across the cohort. The stability of each anchor is quantified by its Sequence Identity (**ASI**) and Gene Order Index (**AOI**).
-3.  **Slot Space:** All regions not occupied by anchors constitute the **Slot Space**. This is where genomic plasticity occurs. Slots are defined between anchors (`Inter-Anchor`), within anchors (`Intra-Anchor`), and at the genome termini (`Upstream`/`Downstream`).
-4.  **Accessory Modules (AMs):** The accessory genome is organized into **Accessory Modules** (AMs), which can be single genes or co-evolving, physically adjacent multi-gene cassettes.
-5.  **Structural Plasticity Index (SPI):** The mobility of each AM is quantified by its **SPI**, which is the number of unique slot types it occupies across the cohort.
+1. Classify gene families by prevalence and filter genomes by contig count and annotation availability.
+2. Identify candidate anchors in the first genome passing QC and verify their order across the cohort.
+3. Record nonempty slots between anchors and between core genes within anchors. Terminal slots depend on the cohort's start-gene consistency check.
+4. Group accessory genes by co-occurrence and physical adjacency; retain remaining genes as single-gene modules.
+5. Count the slot types occupied by each module and test accessory-gene enrichment across slot types.
+6. Optionally export boundary sequences, protein sequence differences, annotation tables, and genome coordinates.
 
 ## Installation
 
-GenoSyntax requires Conda for environment management and relies on a few key external bioinformatics tools.
+Python 3.9 or later and MAFFT are required for the full analysis.
 
-**1. Prerequisites:**
-*   [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) (Miniconda or Anaconda)
-*   Git
-
-**2. Clone the Repository:**
 ```bash
-git clone https://github.com/yunzhe-liu/GenoSynax.git
+git clone https://github.com/yunzhe-liu/GenoSyntax.git
 cd GenoSyntax
-```
-
-**3. Create and Activate Conda Environment:**
-```bash
 conda create -n genosyntax python=3.9
 conda activate genosyntax
-```
-
-**4. Install Dependencies:**
-Install Python packages via `pip` and the required external tools via `conda`.
-```bash
-# Install Python packages
 pip install -r requirements.txt
-
-# Install essential external tools
 conda install -c bioconda mafft
 ```
 
-## Input Data Requirements
+## Inputs
 
-GenoSyntax requires four primary inputs:
+Genome names and locus IDs must match across the matrix, annotations, and sequences.
 
-1.  **Pan-genome Matrix (`--panaroo_file`):** The `gene_presence_absence_roary.csv` file generated by Panaroo.
-2.  **Annotation Directory (`--pharokka_dir`):** The main output directory from Pharokka. GenoSyntax expects this directory to contain a subdirectory for each genome, which in turn holds the `.gff`, `.faa`, and reoriented `.fna` files.
-3.  **Raw Sequence Directory (`--fasta_dir`):** A directory containing the original, raw FASTA sequence files for each genome (one file per genome). This is used for the primary assembly quality control.
-4.  **Protein Sequence Directory (`--faa_dir`):** A directory containing protein FASTA (`.faa`) files. For Pharokka users, this is the same as `--pharokka_dir`.
+| Argument | Expected input |
+|---|---|
+| `--panaroo_file` | Panaroo `gene_presence_absence_roary.csv`; the first 14 columns are metadata, followed by genome columns |
+| `--pharokka_dir` | `<directory>/<genome>/<genome>.gff`, using CDS `ID` attributes that match matrix locus IDs |
+| `--fasta_dir` | `<directory>/<genome>.fasta`, `.fa`, or `.fna`; coordinates must match the GFF |
+| `--faa_dir` | Optional alternate root containing `<genome>/phanotate.faa`; defaults to `--pharokka_dir` |
+
+The default filter accepts single-contig genomes. Supply consistently oriented genomes with comparable starting positions. The start-gene check reports consistency; sequence rotation and reverse complementation are external preparation steps.
 
 ## Usage
 
-### Recommended: The Integrated Pipeline (`run` command)
-
-The `run` command is the most convenient way to use GenoSyntax. It automates the entire workflow and organizes all outputs neatly.
-
-**Basic Usage (Core Analysis: Steps 1-3 + Summary):**
-This is the default and most common use case. It performs architecture definition, slot analysis, and statistical testing, concluding with the generation of a comprehensive summary report.
+Run architecture definition, slot analysis, enrichment tests, and the summary:
 
 ```bash
 python main.py run \
-    --panaroo_file /path/to/panaroo/gene_presence_absence_roary.csv \
-    --pharokka_dir /path/to/pharokka_outputs/ \
-    --fasta_dir /path/to/raw_genome_fastas/ \
-    --output_dir ./My_GenoSyntax_Analysis/
-```
-
-**Full Pipeline with Mechanism Exploration (Steps 1-4):**
-To run the complete pipeline, including the final mechanism analysis step, use the `--mechanisms` flag.
-
-```bash
-python main.py run \
-    --panaroo_file /path/to/panaroo/gene_presence_absence_roary.csv \
-    --pharokka_dir /path/to/pharokka_outputs/ \
-    --fasta_dir /path/to/raw_genome_fastas/ \
-    --output_dir ./My_Full_Analysis/ \
-    --mechanisms motif evo_dynamics adjacency_analysis extract_layouts \
-    --until-step 4
-```
-
-**Key Pipeline Arguments:**
-
-*   `--output_dir`: Path to the main output directory. All results will be organized into subdirectories within this location.
-*   `--until-step [1|2|3|4]`: (Default: 3) Stop the pipeline after the specified step is complete.
-*   `--mechanisms [motif|evo_dynamics|...]`: A space-separated list of analyses to run in Step 4. This step is skipped by default unless this flag is used or `--until-step 4` is specified.
-*   `--dry_run`: A flag to check all inputs and pipeline logic without running any heavy computations.
-
-You can also pass module-specific parameters (e.g., `--tolerance`, `--permutations`) directly to the `run` command. Use `python main.py run -h` for a full list of options.
-
-### Advanced: Step-by-Step Execution
-
-For custom workflows or debugging, you can run each module individually. Note that you are responsible for providing the correct paths to the outputs from the previous step.
-
-**Step 1: `define_architecture`**
-```bash
-python main.py define_architecture \
     --panaroo_file /path/to/gene_presence_absence_roary.csv \
-    --pharokka_dir /path/to/pharokka_outputs/ \
-    --fasta_dir /path/to/raw_fastas/ \
-    --output_dir ./output/1_define_architecture/
+    --pharokka_dir /path/to/pharokka_outputs \
+    --fasta_dir /path/to/genome_fastas \
+    --output_dir ./analysis \
+    --seed 0
 ```
 
-**Step 2: `analyze_slots`**
+Add optional analyses with:
+
 ```bash
-python main.py analyze_slots \
-    --architecture_file ./output/1_define_architecture/architecture_definition.json \
-    --intermediate_dir_prev ./output/1_define_architecture/intermediate/ \
-    --output_dir ./output/2_slot_analysis/
+python main.py run \
+    --panaroo_file /path/to/gene_presence_absence_roary.csv \
+    --pharokka_dir /path/to/pharokka_outputs \
+    --fasta_dir /path/to/genome_fastas \
+    --output_dir ./analysis \
+    --mechanisms motif evo_dynamics adjacency_analysis extract_layouts extract_cds_layout \
+    --until-step 4 \
+    --seed 0
 ```
 
-**Step 3: `run_stats`**
+`motif` exports boundary FASTA files for separate motif analysis. `evo_dynamics` aligns proteins with MAFFT and reports sequence differences. These optional analyses read `phanotate.faa` and nucleotide FASTA files from the Pharokka directory; nucleotide sequences must match the annotation coordinates.
+
+`--until-step` stops after the selected stage. `--dry_run` checks required input paths and executable availability without running the analysis; file contents and biological consistency are checked during execution.
+
+Individual commands are `define_architecture`, `analyze_slots`, `run_stats`, and `explore_mechanisms`. See [MANUAL.md](MANUAL.md) for parameters and output definitions, or run `python main.py <command> --help`.
+
+Generate and run a small synthetic cohort:
+
 ```bash
-python main.py run_stats \
-    --slot_analysis_dir ./output/2_slot_analysis/ \
-    --output_dir ./output/3_statistical_test/
+python examples/make_demo.py /tmp/genosyntax_demo
+python main.py run \
+    --panaroo_file /tmp/genosyntax_demo/gene_presence_absence_roary.csv \
+    --pharokka_dir /tmp/genosyntax_demo/pharokka \
+    --fasta_dir /tmp/genosyntax_demo/fastas \
+    --output_dir /tmp/genosyntax_demo/result \
+    --permutations 100 --seed 0
 ```
 
-**Step 4: `explore_mechanisms`**
-```bash
-python main.py explore_mechanisms \
-    --analyses motif evo_dynamics \
-    --def_arch_dir ./output/1_define_architecture/ \
-    --slot_analysis_dir ./output/2_slot_analysis/ \
-    --stats_dir ./output/3_statistical_test/ \
-    --pharokka_dir /path/to/pharokka_outputs/ \
-    --output_dir ./output/4_mechanism_analysis/
-```
+The synthetic sequences exercise file handling and the workflow. They carry no biological interpretation.
 
+## Outputs
 
-## Output Structure
+| Location | Contents |
+|---|---|
+| `1_define_architecture/architecture_definition.json` | QC, gene categories, anchor definitions, and anchor-order groups |
+| `1_define_architecture/intermediate/` | Gene order, coordinates, annotations, and locus mappings |
+| `2_slot_analysis/intermediate/` | Slot contents and accessory module definitions |
+| `2_slot_analysis/reports/module_dynamics_report.csv` | Module frequency within recorded slots, SPI, and observed slot labels |
+| `3_statistical_test/reports/` | Enrichment and depletion tests for all accessory genes and for multi-gene module members |
+| `comprehensive_summary_report.json` | Composite scores and selected results |
+| `4_mechanism_analysis/` | Requested downstream exports; files depend on available data and selected analyses |
 
-A successful run will create the following structure in your main output directory:
+When no anchors satisfy the criteria, the pipeline saves the architecture report and stops. This outcome depends on the input cohort, reference genome, and thresholds.
 
-```
-My_GenoSyntax_Analysis/
-├── 1_define_architecture/
-│   ├── architecture_definition.json  # The master blueprint of the genomic architecture
-│   └── intermediate/                 # Pre-processed databases (gene order, etc.)
-│
-├── 2_slot_analysis/
-│   ├── reports/
-│   │   └── module_dynamics_report.csv  # Key report detailing SPI, frequency, and class of all AMs
-│   └── intermediate/
-│       ├── slot_database.json
-│       └── accessory_module_definitions.json
-│
-├── 3_statistical_test/
-│   └── reports/
-│       ├── permutation_test_slot_significance.csv          # Hotspot report for ALL accessory genes
-│       └── permutation_test_multigene_module_significance.csv  # Hotspot report for MULTI-GENE cassettes ONLY
-│
-├── 4_mechanism_analysis/
-│   ├── motif_analysis_all_modules/
-│   │   └── hot_frontend_boundaries.fasta   # FASTA files for motif discovery
-│   ├── motif_analysis_multigene_modules/
-│   │   └── hot_frontend_boundaries.fasta   # Cassette-specific FASTA files (recommended for integrase motifs)
-│   ├── motif_analysis_high_spi_enriched/   
-│   │   └── high_spi_freq_frontend_boundaries.fasta
-│   ├── adjacency_module_analysis/
-│   │   ├── adjacency_modules_summary.csv   # Summary of multi-gene modules
-│   │   ├── adjacency_nodes.csv             # Network files for Cytoscape
-│   │   └── adjacency_edges.csv
-│   └── reports/
-│       ├── all_genome_layouts.csv          # Physical map of anchors/slots for visualization
-│       ├── all_genomes_cds_layout.csv      # Detailed map of all coding sequences
-│       ├── spi_vs_ped_analysis.csv         # Report linking structural plasticity (SPI) and protein evolution (PED)
-│       └── high_spi_slot_enrichment.csv    # Statistical report on slots preferred by mobile elements
-│
-└── comprehensive_summary_report.json     # Summary
-```
+## Interpreting results
 
+- **SPI** counts distinct observed slot labels. Anchor recognition and slot resolution affect this count; it describes positional diversity.
+- **Multi-gene modules** are co-occurring, physically adjacent candidates. Functional descriptions come from supplied annotations.
+- **Slot enrichment** compares accessory-gene member counts with random assignments across pooled, observed slot gene positions. The null model pools genomes and treats cassette members individually. The primary reports contain unadjusted p-values.
+- **PED** is one minus average protein alignment identity, averaged across a module's gene families.
+- **GRI and the plasticity profile** are heuristic summaries with fixed weights. Cohort composition, sample size, thresholds, and slot definitions affect their values. Use the component measurements when comparing results.
 
+The implementation uses linear gene order and reference-derived anchors. Circular boundaries, inversions, paralogs, and fragmented assemblies require inspection. The repository contains research analysis code developed for a phage cohort.
 
-## Citation
+## License
 
-If you use GenoSyntax in your research, please cite:
-
-*(Manuscript in preparation. Citation details will be available here upon publication.)*
-
+[MIT](LICENSE).

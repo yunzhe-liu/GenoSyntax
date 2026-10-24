@@ -1,5 +1,3 @@
-# /GenoSynax_test/genosyntax/statistical_test/__init__.py
-
 import os
 import json
 
@@ -8,20 +6,16 @@ from genosyntax.statistical_test.permutation_test import run_permutation_test
 import pandas as pd
 
 def run(args):
-    """
-    Entrypoint function for the 'run_stats' module.
-    MODIFIED: Now handles and saves two separate output reports from the dual 
-    permutation test.
-    """
+    """Entrypoint function for the 'run_stats' module."""
     if args.dry_run:
         print(f"--- Dry Run for 'run_stats' ---")
         print("Arguments received:", vars(args))
         if not os.path.exists(args.slot_analysis_dir):
             print(f"  [ERROR] Input path not found: {args.slot_analysis_dir}")
-            return
+            return False
         print("  All input paths are valid.")
         print("Dry run complete.")
-        return
+        return True
         
     output_dir = args.output_dir
     reports_dir = os.path.join(output_dir, "reports")
@@ -39,16 +33,14 @@ def run(args):
     print(f"[*] Loading accessory module definitions from: {am_def_path}")
     accessory_modules = load_json(am_def_path)
     
-    if not slot_database or not accessory_modules:
+    if slot_database is None or accessory_modules is None:
         print("[FATAL] Could not load necessary input files. Please ensure the 'analyze_slots' module ran successfully.")
-        return
+        return False
 
-    # --- MODIFIED: Run the dual test and receive two DataFrames ---
     results_df_all, results_df_multi = run_permutation_test(
         slot_database, accessory_modules, num_permutations=args.permutations
     )
-    
-    # --- MODIFIED: Save both output files with distinct, clear names ---
+
     
     # Save the original, primary report for all accessory modules
     if not results_df_all.empty:
@@ -58,7 +50,6 @@ def run(args):
     else:
         print("\n[INFO] No results were generated for the 'all modules' analysis.")
 
-    # --- Save the new, additional report for multi-gene modules  ---
     if not results_df_multi.empty:
         report_path_multi = os.path.join(reports_dir, "permutation_test_multigene_module_significance.csv")
         results_df_multi.to_csv(report_path_multi, index=False)

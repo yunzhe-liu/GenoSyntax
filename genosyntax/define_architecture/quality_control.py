@@ -1,18 +1,10 @@
-# /GenoSynax_test/genosyntax/define_architecture/quality_control.py
-
 import os
 from collections import Counter
 from Bio import SeqIO
 
 def analyze_fasta_for_qc(fasta_path):
-    """
-    A lightweight and robust function to analyze a FASTA file for QC purposes.
-    VERSION 2 (ROBUST): Instead of relying on Bio.SeqIO.parse(), this version
-    reads the file content directly and counts '>' occurrences. This is more
-    resilient to non-standard line endings and other formatting issues that
-    can trick the parser into seeing multiple contigs where there is only one.
-    """
-    if not os.path.exists(fasta_path):
+    """Count FASTA headers for the contig-count filter."""
+    if not fasta_path or not os.path.exists(fasta_path):
         return {'num_contigs': -1, 'error': 'FASTA file not found'}
     
     try:
@@ -35,10 +27,7 @@ def analyze_fasta_for_qc(fasta_path):
 
 
 def run_qc(genome_ids, fasta_dir, gene_order_db, gene_coord_db, max_contigs=1, orientation_threshold=0.9):
-    """
-    Performs QC checks.
-    This function now uses the robust analyze_fasta_for_qc v2.
-    """
+    """Performs QC checks."""
     print("\n--- Task 2: Running Quality Control ---")
     
     total_genomes_input = genome_ids
@@ -51,14 +40,13 @@ def run_qc(genome_ids, fasta_dir, gene_order_db, gene_coord_db, max_contigs=1, o
     
     for genome_id in total_genomes_input:
         fasta_path = None
-        # Robustly find the FASTA file with common extensions
+        # Find the FASTA file with common extensions
         for ext in ['.fasta', '.fa', '.fna']:
             potential_path = os.path.join(fasta_dir, f"{genome_id}{ext}")
             if os.path.exists(potential_path):
                 fasta_path = potential_path
                 break
-        
-        # This now calls our new, robust function
+
         qc_result = analyze_fasta_for_qc(fasta_path)
         num_contigs = qc_result.get('num_contigs')
         fasta_contig_counts[genome_id] = num_contigs

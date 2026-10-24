@@ -1,5 +1,3 @@
-# /GenoSynax_test/genosyntax/define_architecture/__init__.py
-
 import os
 import json
 import pandas as pd
@@ -12,12 +10,7 @@ from genosyntax.define_architecture.macro_analysis import analyze_macro_architec
 from genosyntax.utils.file_ops import save_json
 
 def run(args):
-    """
-    Entrypoint function for the 'define_architecture' module.
-    MODIFIED: Now handles the case where no anchors are discovered, providing a
-    clear warning and generating a valid but empty architecture file to prevent
-    downstream crashes.
-    """
+    """Entrypoint function for the 'define_architecture' module."""
     # --- Setup Directories ---
     output_dir = args.output_dir
     intermediate_dir = os.path.join(output_dir, "intermediate")
@@ -48,24 +41,19 @@ def run(args):
         orientation_threshold=getattr(args, 'orientation_consistency_threshold', 0.9)
     )
 
+    if not passed_genomes:
+        save_json(qc_report, os.path.join(reports_dir, 'qc_report.json'))
+        print('[ERROR] No genomes passed QC; see reports/qc_report.json.')
+        return False
+
     # Step 3: Anchor Discovery
     params_da = {'tolerance': args.tolerance, 'coverage_threshold': args.coverage_threshold, 'min_length': args.min_length}
     anchors_basic = discover_anchors(gene_order_db, stratified_genes['strict_core'], passed_genomes, **params_da)
     
     # Check if any anchors were found. If not, we stop further analysis but create a valid output file.
     if not anchors_basic:
-        print("\n" + "="*80)
-        print("[CRITICAL WARNING] No anchor modules were found that meet the specified criteria.")
-        print("This means no stable genomic backbone could be identified for this dataset.")
-        print("Downstream analyses (slot_analysis, etc.) will be skipped as they depend on anchors.")
-        print("\nPossible reasons:")
-        print("  1. The pangenome has very few 'strict core' genes.")
-        print("  2. The genomic structure is highly variable across the cohort.")
-        print("  3. The '--coverage-threshold' or '--min-length' parameters are too strict.")
-        print("\nSuggestions:")
-        print("  - Try re-running with a lower '--coverage-threshold' (e.g., 0.8) or a lower '--min-length' (e.g., 2).")
-        print("="*80 + "\n")
-        
+        print('[INFO] No anchors satisfy the current criteria; saving an empty architecture report.')
+
         # Create an empty but valid output structure
         final_output = {
             "metadata": {
@@ -79,9 +67,9 @@ def run(args):
         }
     else:
         # If anchors were found, proceed with the normal workflow
-        anchors_characterized = characterize_anchors(anchors_basic, protein_db, gene_order_db, gene_coord_db, genome_seqs, passed_genomes, intermediate_dir)
+        anchors_characterized = characterize_anchors(anchors_basic, protein_db, gene_order_db, gene_coord_db, genome_seqs, passed_genomes, intermediate_dir, tolerance=args.tolerance)
         anchors_functional = annotate_anchor_functions(anchors_characterized, gene_annotation_map)
-        macro_report = analyze_macro_architecture(anchors_functional, gene_order_db, passed_genomes)
+        macro_report = analyze_macro_architecture(anchors_functional, gene_order_db, passed_genomes, tolerance=args.tolerance)
         
         final_output = {
             "metadata": {

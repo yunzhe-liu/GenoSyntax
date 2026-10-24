@@ -1,5 +1,3 @@
-# /GenoSynax_test/genosyntax/slot_analysis/slot_partitioner.py
-
 import json
 from collections import defaultdict, Counter
 from tqdm import tqdm
@@ -7,7 +5,7 @@ import pandas as pd
 
 def _find_anchor_location(skeleton, genome_order, all_core_genes, tolerance):
     """
-    A robust helper function to find the precise start and end indices of an anchor
+    Find the start and end indices of an anchor
     skeleton within a genome's gene order.
     """
     skel_len = len(skeleton)
@@ -150,10 +148,7 @@ def partition_slot_space(architecture_def, gene_order_db, gene_coord_db):
 
 
 def analyze_grey_zone_genes(slot_database, pangenome_strat, anchor_defs):
-    """
-    Analyzes the distribution of 'Soft Core' and 'Orphan Core' genes within the slot space.
-    MODIFIED: Handles the edge case where no 'grey zone' genes are found.
-    """
+    """Analyzes the distribution of 'Soft Core' and 'Orphan Core' genes within the slot space."""
     print("\n--- Task 2: Analyzing 'Grey Zone' Gene Distribution ---")
     
     soft_core_genes = set(pangenome_strat.get('soft_core', []))

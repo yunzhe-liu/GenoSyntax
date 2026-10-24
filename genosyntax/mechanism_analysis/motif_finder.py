@@ -1,5 +1,3 @@
-# /GenoSynax_test/genosyntax/mechanism_analysis/src/motif_finder.py
-
 import os
 import json
 from tqdm import tqdm
@@ -22,7 +20,7 @@ def _sanitize_fasta_for_meme(file_path: str, min_length: int):
     """
     Reads a FASTA file, filters out sequences shorter than min_length,
     and overwrites the file with linearized, clean FASTA records.
-    This makes the file robustly compatible with MEME-ChIP.
+    Write records in a format accepted by MEME-ChIP.
     """
     # Check if the file was created and is not empty
     if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
@@ -59,11 +57,7 @@ def extract_boundary_sequences(
     statistical_report_df=None,
     target_slot_instances=None
 ):
-    """
-    Extracts boundary sequences from genomic slots.
-    VERSION 6: Adds a final sanitization step to prepare files for MEME-ChIP,
-    including sequence linearization and length filtering.
-    """
+    """Extracts boundary sequences from genomic slots."""
 
     
     # --- Determine Operational Mode ---

@@ -48,7 +48,7 @@ def annotate_anchor_functions(anchors, gene_annotation_map):
         for func_desc in gene_functions:
             assigned_class = "Unknown & Other" # Default
             for category, keywords in FUNCTIONAL_MAP.items():
-                # Use lower case for robust matching
+                # Match keywords case-insensitively
                 if any(keyword in func_desc.lower() for keyword in keywords):
                     assigned_class = category
                     break

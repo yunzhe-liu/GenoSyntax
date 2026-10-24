@@ -1,9 +1,6 @@
-# /GenoSynax_test/genosyntax/define_architecture/macro_analysis.py
-
 from collections import Counter, defaultdict
 from scipy.stats import entropy
 
-# --- Robust Import ---
 # It is critical to use the same anchor verification logic as the rest of the pipeline.
 try:
     # This works when running as part of the genosyntax package.
@@ -38,36 +35,14 @@ def is_subsequence(child_perm, parent_perm):
 # --- Main Analysis Function ---
 
 def analyze_macro_architecture(anchors, gene_order_db, passed_genomes, tolerance=2):
-    """
-    Analyzes the permutation order of anchor modules across all high-quality genomes.
-
-    VERSION 3:
-    This version implements a robust, two-stage process to correctly classify genomic architectures:
-    1.  It first uses a strict verification function (`_verify_skeleton_in_genome`) to accurately
-        identify the presence of structurally complete anchors in each genome.
-    2.  It then groups genomes using an "Ordered Subset" (subsequence) matching algorithm.
-        This ensures that genomes with significant anchor loss (e.g., containing only 2 of 10 anchors)
-        are correctly classified as part of a major architecture, provided their remaining anchors
-        maintain the correct relative order. This prevents incorrect fragmentation into multiple
-        "chaotic" architectures.
-
-    Args:
-        anchors (list): List of anchor definition dictionaries from previous steps.
-        gene_order_db (dict): Maps genome_id to its ordered list of gene group IDs.
-        passed_genomes (list): List of genome IDs that passed quality control.
-        tolerance (int): The number of non-core genes tolerated within an anchor skeleton.
-
-    Returns:
-        dict: A report summarizing the macro-architectural landscape, including major/minor
-              architectures and global permutation entropy.
-    """
+    """Analyzes the permutation order of anchor modules across all high-quality genomes."""
     print("\n--- Task 5: Analyzing Macro-Architecture ---")
 
     if not anchors:
         print("  [Warning] No anchor definitions provided. Skipping macro-analysis.")
         return {}
 
-    # --- STEP 1: Robustly locate all valid anchors and their order in each genome ---
+    # --- STEP 1: Locate all valid anchors and their order in each genome ---
     print("  Step 1: Accurately locating structurally complete anchors in each genome...")
     genome_permutations = {}
     anchor_map = {a['anchor_id']: a for a in anchors}
@@ -81,7 +56,7 @@ def analyze_macro_architecture(anchors, gene_order_db, passed_genomes, tolerance
         for anchor_id, anchor_info in anchor_map.items():
             skeleton = tuple(anchor_info['skeleton'])
             
-            # Use the robust verification function to ensure the entire anchor is present.
+            # Use the skeleton verification function to ensure the entire anchor is present.
             if _verify_skeleton_in_genome(skeleton, gene_order, all_core_genes, tolerance):
                 start_pos = _find_anchor_start_pos(skeleton, gene_order)
                 if start_pos != -1:

@@ -1,5 +1,3 @@
-# /GenoSynax_test/genosyntax/summarizer.py
-
 import json
 import os
 import pandas as pd

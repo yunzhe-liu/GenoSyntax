@@ -1,5 +1,3 @@
-# /GenoSynax_test/genosyntax/slot_analysis/__init__.py
-
 import os
 import json
 
@@ -9,11 +7,7 @@ from genosyntax.slot_analysis.module_discoverer import discover_multi_gene_modul
 from genosyntax.slot_analysis.dynamics_analyzer import analyze_module_dynamics
 
 def run(args):
-    """
-    Entrypoint function for the 'analyze_slots' module.
-    MODIFIED: Now includes a check to ensure that anchors were actually found
-    in the previous step before proceeding.
-    """
+    """Entrypoint function for the 'analyze_slots' module."""
     if args.dry_run:
         return True
 
@@ -57,7 +51,8 @@ def run(args):
         phi_threshold=args.phi_threshold,
         p_value_threshold=args.p_value_threshold,
         adjacency_distance=args.adjacency_distance,
-        support_threshold=args.support_threshold
+        support_threshold=args.support_threshold,
+        seed=getattr(args, 'seed', 0)
     )
     
     accessory_modules = define_accessory_modules(pangenome_strat, multi_gene_modules, gene_annotation_map)

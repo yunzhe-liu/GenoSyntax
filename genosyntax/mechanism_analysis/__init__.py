@@ -1,5 +1,3 @@
-# /GenoSynax_test/genosyntax/mechanism_analysis/__init__.py
-
 import os
 import pandas as pd
 from collections import defaultdict
@@ -12,10 +10,7 @@ from .layout_extractor import run_layout_extraction
 from .cds_extractor import run_cds_extraction
 
 def run(args):
-    """
-    Entrypoint for 'explore_mechanisms' module.
-    This version removes overly broad error handling to allow for proper debugging.
-    """
+    """Entrypoint for 'explore_mechanisms' module."""
     if args.dry_run:
         print(f"--- Dry Run for 'explore_mechanisms' ---")
         return True

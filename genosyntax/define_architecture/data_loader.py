@@ -69,8 +69,8 @@ def load_gff_data(gff_dir, locus_to_group_map, genome_ids):
                     gene_info = { 'group_id': group_id, 'contig': parts[0], 'start': int(parts[3]), 'end': int(parts[4]), 'strand': parts[6], 'locus_tag': locus_tag }
                     genes_with_pos.append(gene_info)
                     
-        gene_coord_db[genome_id].extend(genes_with_pos)
         genes_with_pos.sort(key=lambda x: x['start'])
+        gene_coord_db[genome_id].extend(genes_with_pos)
         gene_order_db[genome_id] = [g['group_id'] for g in genes_with_pos]
         
     print("GFF data loading complete.")

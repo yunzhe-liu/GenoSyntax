@@ -1,5 +1,3 @@
-# /GenoSynax_test/genosyntax/mechanism_analysis/evolutionary_analyzer.py
-
 import os
 import json
 import subprocess
@@ -84,7 +82,7 @@ def _calculate_protein_evolutionary_distance(accessory_modules, gene_coord_db, p
             avg_module_ped = sum(module_distances) / len(module_distances)
             results.append({'module_id': module_id, 'protein_evolutionary_distance': avg_module_ped})
 
-    return pd.DataFrame(results)
+    return pd.DataFrame(results, columns=['module_id', 'protein_evolutionary_distance'])
 
 def _analyze_high_spi_slot_enrichment(df_spi, spi_threshold):
     """

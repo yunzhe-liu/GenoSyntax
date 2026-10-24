@@ -1,5 +1,3 @@
-# /GenoSynax_test/genosyntax/utils/file_ops.py
-
 import json
 import os
 import subprocess
@@ -82,7 +80,6 @@ def calculate_asi_for_gene(sequences, temp_dir):
 
     return np.mean(pids) if pids else 1.0
 
-# --- MODIFIED FUNCTION ---
 def calculate_gc_content(sequence):
     """
     Calculates GC content of a DNA sequence string.

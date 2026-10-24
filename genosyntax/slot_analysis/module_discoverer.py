@@ -21,7 +21,8 @@ def discover_multi_gene_modules(
     phi_threshold=0.8, 
     p_value_threshold=0.01, 
     adjacency_distance=250, 
-    support_threshold=0.8
+    support_threshold=0.8,
+    seed=0
 ):
     """
     Discovers multi-gene accessory modules (AMs) using a dual-validation workflow.
@@ -30,7 +31,7 @@ def discover_multi_gene_modules(
     """
     print("\n--- Task 3: Discovering Multi-Gene Accessory Modules ---")
     
-    accessory_genes = set(pangenome_strat['accessory'])
+    accessory_genes = sorted(set(pangenome_strat['accessory']))
     num_genomes = len(passed_genomes)
     
     # --- 1a. Build gene presence matrix for accessory genes ---
@@ -64,7 +65,7 @@ def discover_multi_gene_modules(
     print(f"\n  Step 2: Found {len(significant_pairs)} significant pairs. Detecting communities...")
     edges_df = pd.DataFrame(significant_pairs)
     G = nx.from_pandas_edgelist(edges_df, 'gene1', 'gene2', edge_attr='phi')
-    partition = community_louvain.best_partition(G, weight='phi')
+    partition = community_louvain.best_partition(G, weight='phi', random_state=seed)
     
     candidate_modules = defaultdict(list)
     for gene, mod_id in partition.items():
@@ -147,8 +148,7 @@ def define_accessory_modules(
     
     accessory_modules = []
     module_counter = 1
-    
-    # --- 1. Add validated multi-gene modules ---
+
     for members in multi_gene_modules:
         # Find a consensus function
         functions = [gene_annotation_map.get(g, 'hypothetical protein') for g in members]
@@ -163,7 +163,6 @@ def define_accessory_modules(
         })
         module_counter += 1
 
-    # --- 2. Add remaining accessory genes as single-gene modules ---
     single_genes = accessory_genes - genes_in_multi_gene_modules
     for gene in sorted(list(single_genes)):
         accessory_modules.append({

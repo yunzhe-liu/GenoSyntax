@@ -1,15 +1,9 @@
-# /GenoSynax_test/genosyntax/mechanism_analysis/adjacency_analyzer.py
-
 import os
 import pandas as pd
 from collections import defaultdict
 
 def run_adjacency_analysis(output_dir, accessory_modules, gene_annotation_map):
-    """
-    Performs a deep functional analysis of adjacency (multi-gene) modules.
-    Generates a detailed narrative report, a CSV summary, heatmap data, and network files.
-    This version is hardened against empty inputs and ensures correct output.
-    """
+    """Export annotations and membership tables for multi-gene modules."""
     analysis_dir = os.path.join(output_dir, "adjacency_module_analysis")
     os.makedirs(analysis_dir, exist_ok=True)
     
@@ -42,18 +36,18 @@ def run_adjacency_analysis(output_dir, accessory_modules, gene_annotation_map):
                 informative_annot_count += 1
             
             gene_details.append({'id': gene_id, 'annotation': annotation})
-            heatmap_data.append({'module_id': module_id, 'gene_position': i, 'gene_id': gene_id, 'function_description': annotation})
+            heatmap_data.append({'module_id': module_id, 'member_index': i, 'gene_id': gene_id, 'function_description': annotation})
             node_data.append({'NodeID': gene_id, 'ModuleID': module_id, 'FunctionDescription': annotation})
 
         if informative_annot_count == num_genes and num_genes > 0:
-            category, confidence = "Category A: High-Confidence Functional Modules", "High"
+            category, confidence = "Category A: All Members Annotated", "Complete"
         elif informative_annot_count > 0:
-            category, confidence = "Category B: Plausible Functional Modules", "Medium"
+            category, confidence = "Category B: Some Members Annotated", "Partial"
         else:
-            category, confidence = "Category C: Uncharacterized Modules", "Low"
+            category, confidence = "Category C: No Informative Annotations", "None"
 
         narrative = f"### Module: {module_id} ({num_genes} genes)\n"
-        narrative += f"Annotation Confidence: {confidence} ({informative_annot_count}/{num_genes} informative)\n\n"
+        narrative += f"Annotation Coverage: {confidence} ({informative_annot_count}/{num_genes} informative)\n\n"
         narrative += "| Gene ID    | Function Description (from Panaroo)\n"
         narrative += "|------------|--------------------------------------------------\n"
         for gene in gene_details:
@@ -61,15 +55,17 @@ def run_adjacency_analysis(output_dir, accessory_modules, gene_annotation_map):
         
         report_sections[category].append(narrative)
 
-        summary_data.append({'module_id': module_id, 'num_genes': num_genes, 'confidence_category': category, 'informative_gene_count': informative_annot_count, 'member_ids': ", ".join(members)})
+        summary_data.append({'module_id': module_id, 'num_genes': num_genes, 'annotation_coverage_category': category, 'informative_gene_count': informative_annot_count, 'member_ids': ", ".join(members)})
 
-        if len(members) > 1:
-            for i in range(len(members) - 1):
-                edge_data.append({'Source': members[i], 'Target': members[i+1], 'InteractionType': 'PhysicalAdjacency', 'ModuleID': module_id})
+        for gene_id in members:
+            edge_data.append({'Source': module_id, 'Target': gene_id,
+                              'InteractionType': 'ModuleMembership', 'ModuleID': module_id})
+        node_data.append({'NodeID': module_id, 'ModuleID': module_id,
+                          'FunctionDescription': 'Accessory module'})
 
     final_report = "====== Adjacency Module Narrative Functional Report ======\n\n"
-    final_report += "This report categorizes multi-gene adjacency modules based on the confidence of their functional annotations, sourced from Panaroo.\n\n"
-    category_order = ["Category A: High-Confidence Functional Modules", "Category B: Plausible Functional Modules", "Category C: Uncharacterized Modules"]
+    final_report += "This report categorizes multi-gene adjacency modules based on the coverage of their functional annotations, sourced from Panaroo.\n\n"
+    category_order = ["Category A: All Members Annotated", "Category B: Some Members Annotated", "Category C: No Informative Annotations"]
 
     for cat_name in category_order:
         if cat_name in report_sections:

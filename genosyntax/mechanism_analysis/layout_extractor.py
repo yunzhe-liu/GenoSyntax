@@ -1,5 +1,3 @@
-# /GenoSynax_test/genosyntax/mechanism_analysis/layout_extractor.py
-
 import json
 import pandas as pd
 from tqdm import tqdm
@@ -8,12 +6,8 @@ import os
 import re
 
 def run_layout_extraction(output_dir, architecture_def, gene_order_db, gene_coord_db):
-    """
-    Main function to extract the true structural layouts of all high-quality genomes.
-    This version contains the corrected logic for finding slot_database.json and
-    uses the robust two-step validation for layout determination.
-    """
-    print("  -> Using robust two-step logic to determine true genome layouts...")
+    """Main function to extract the true structural layouts of all high-quality genomes."""
+    print("  -> Extracting genome layouts from anchor and slot records...")
     
 
     

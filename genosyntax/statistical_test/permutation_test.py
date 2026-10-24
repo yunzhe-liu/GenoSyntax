@@ -1,5 +1,3 @@
-# /GenoSynax_test/genosyntax/statistical_test/permutation_test.py
-
 import numpy as np
 import pandas as pd
 from collections import Counter
@@ -7,11 +5,7 @@ from tqdm import tqdm
 import random
 
 def run_permutation_test(slot_database, accessory_modules, num_permutations=10000):
-    """
-    Performs a permutation test to identify significant hotspots and coldspots.
-    VERSION 3 (MODIFIED): Includes a second, separate analysis specifically for 
-    multi-gene modules to test for cassette-specific hotspots.
-    """
+    """Performs a permutation test to identify significant hotspots and coldspots."""
     print("\n--- Task: Running Permutation Test for Slot Significance ---")
 
     # ==============================================================================

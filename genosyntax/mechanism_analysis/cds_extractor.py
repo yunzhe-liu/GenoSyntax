@@ -1,5 +1,3 @@
-# genosyntax/mechanism_analysis/cds_extractor.py
-
 import os
 import json
 import pandas as pd

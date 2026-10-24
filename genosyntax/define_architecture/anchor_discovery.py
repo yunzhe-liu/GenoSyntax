@@ -53,7 +53,7 @@ def _verify_skeleton_in_genome(skeleton, genome_order, core_genes, tolerance):
 
 def characterize_anchors(anchors, protein_db, gene_order_db, gene_coord_db, 
                        genome_seqs, 
-                       passed_genomes, temp_dir, boundary_window=200):
+                       passed_genomes, temp_dir, boundary_window=200, tolerance=2):
 
     print("\n--- Task 4: Characterizing Anchor Modules ---")
     print("  Pre-calculating global background GC content...")
@@ -64,7 +64,7 @@ def characterize_anchors(anchors, protein_db, gene_order_db, gene_coord_db,
     all_core_genes = {gene for sk in anchors for gene in sk['skeleton']}
     for i, anchor in enumerate(anchors):
         anchor_id = f"Anchor_{i+1}"; anchor['anchor_id'] = anchor_id
-        anchor_presence_map[anchor_id] = [gid for gid in passed_genomes if _verify_skeleton_in_genome(tuple(anchor['skeleton']), gene_order_db[gid], all_core_genes, 2)]
+        anchor_presence_map[anchor_id] = [gid for gid in passed_genomes if _verify_skeleton_in_genome(tuple(anchor['skeleton']), gene_order_db[gid], all_core_genes, tolerance)]
     for anchor in tqdm(anchors, desc="  Characterizing anchors"):
         skeleton, present_genomes = anchor['skeleton'], anchor_presence_map[anchor['anchor_id']]
         all_gene_asis = [asi for core_gene in skeleton if (asi := calculate_asi_for_gene([s for gid in present_genomes if (s := protein_db.get(core_gene, {}).get(gid))], temp_dir)) is not None]
